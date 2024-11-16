@@ -46,23 +46,85 @@ const registerUser = async (req, res) => {
         if (existingUser) {
             return responds.error(req, res, { message: 'El correo ya está en uso.' }, 409);
         }
-        
-        // Encrypt the password using bcrypt before storing it
-        const newPassword = hashSync(result.password, 10);
 
-        // Construct a new user object with the registration details
-        const newUser = await prisma.usuario.create({
-            data: {
-                cargo: result.cargo,
-                nombre: result.nombre,
-                apellido: result.apellido,
-                password: newPassword,
-                email: result.email,
+        // Check for existing user with the same cedula
+        const cedulaUsed = await prisma.usuario.findUnique({
+            where: {
+                cedula: result.cedula
             }
         })
 
+        if (cedulaUsed) {
+            return responds.error(req, res, { message: 'La cedula ya está en uso.' }, 409);
+        }
+
+        // Encrypt the password using bcrypt before storing it
+        const newPassword = hashSync(result.password, 10);
+
+        let data;
+
+        if (result.tipoUsuario === 'doctor') {
+            data = await schema.doctorRegister.validateAsync({
+                especialidad: result.especialidad,
+                numeroTelefono: result.numeroTelefono
+            })
+        } else if (result.tipoUsuario === 'paciente') {
+            data = await schema.pacienteRegister.validateAsync({
+                tipoSangre: result.tipoSangre,
+                direccion: result.direccion,
+                numeroTelefono: result.numeroTelefono,
+                seguroMedico: result.seguroMedico
+            })
+        }
+
+        // Start a transaction
+        const newUser = await prisma.$transaction(async (prisma) => {
+
+            // Create the user
+            const user = await prisma.usuario.create({
+                data: {
+                    nombre: result.nombre,
+                    apellido: result.apellido,
+                    password: newPassword,
+                    email: result.email,
+                    cedula: result.cedula,
+                    tipoUsuario: result.tipoUsuario
+                }
+            })
+
+            // Creat the specific role entity based on tipoUsuario
+            if (result.tipoUsuario === 'doctor') {
+                await prisma.doctor.create({
+                    data: {
+                        userId: user.id,
+                        numeroTelefono: data.numeroTelefono,
+                        especialidad: data.especialidad,
+                    }
+                });
+            } else if (result.tipoUsuario === 'paciente') {
+                await prisma.paciente.create({
+                    data: {
+                        userId: user.id,
+                        tipoSangre: data.tipoSangre,
+                        direccion: data.direccion,
+                        numeroTelefono: data.numeroTelefono,
+                        seguroMedico: data.seguroMedico
+                    }
+                });
+            } else if (result.tipoUsuario === 'administrador') {
+                await prisma.administrador.create({
+                    data: {
+                        userId: user.id
+                    }
+                });
+            }
+
+            return user;
+
+        })
+
         // Respond with a success message upon successful registration
-        return responds.success(req, res, { message: 'Usuario registrado exitosamente.' }, 201);
+        return responds.success(req, res, { message: 'Usuario registrado exitosamente.', usuario: newUser }, 201);
 
     } catch (error) {
         // Handle validation errors specifically from Joi
@@ -106,6 +168,14 @@ const loginUser = async (req, res) => {
             return responds.error(req, res, { message: 'El correo o la contraseña es inválida.' }, 401);
         }
 
+        // Verify type of user
+        const tipoUsuario = result.tipoUsuario;
+
+        if (tipoUsuario != user.tipoUsuario) {
+            return responds.error(req, res, {message: 'El tipo de usuario no coincide.'}, 404);
+        }
+        
+
         // Generate access and refresh tokens
         const accessToken = jwt.sign(
             { userId: user.id },
@@ -132,7 +202,7 @@ const loginUser = async (req, res) => {
                 userId: user.id
             }
         })
-        
+
         // Respond with user data and tokens
         const data = {
             id: user.id,
@@ -142,9 +212,17 @@ const loginUser = async (req, res) => {
             accessToken,
             refreshToken
         };
-        return responds.success(req, res, {data, message: 'Ha ingresado exitosamente.'} , 200);
+        return responds.success(req, res, { data, message: 'Ha ingresado exitosamente.' }, 200);
 
     } catch (error) {
+        if (error instanceof Joi.ValidationError) {
+            // Interceptar el error de `any.only` y personalizar el mensaje
+            if (error.details[0].type === 'any.only') {
+                return responds.error(req, res, { message: 'Se debe indicar un tipo de usuario válido.' }, 422);
+            }
+            return responds.error(req, res, { message: error.details[0].message }, 422);
+        }
+
         // Handle errors
         return responds.error(req, res, { message: error.message }, 500);
     }
@@ -251,7 +329,7 @@ const logoutUser = async (req, res) => {
                 userId: req.user.id
             }
         })
-        
+
         //await refreshTokensModel.deleteRecord({ userId: req.user.id });
 
         // Prepare data for invalidating the current access token
@@ -281,37 +359,39 @@ const logoutUser = async (req, res) => {
     }
 };
 
-const changePassword = async (req,res) => {
+const changePassword = async (req, res) => {
 
     try {
         // Getting user after authentication with JWT
         // Validate and extract user registration data from the request body
         const result = await schema.changePassword.validateAsync(req.body);
 
-        const user = await prisma.usuario.findUnique({where: {
-            id: req.user.id
-        }})
+        const user = await prisma.usuario.findUnique({
+            where: {
+                id: req.user.id
+            }
+        })
 
         if (!user) {
-            return responds.success(req, res, {message: 'Hubo un error. Intente de nuevo'}, 404);
+            return responds.success(req, res, { message: 'Hubo un error. Intente de nuevo' }, 404);
         }
 
         // Validating old password
         const validOldPassword = await compare(result.currentPassword, user.password);
 
         if (!validOldPassword) {
-            return responds.error(req, res, {message: 'La contraseña actual no es correcta.'}, 409)
+            return responds.error(req, res, { message: 'La contraseña actual no es correcta.' }, 409)
         }
 
         // Updating password
         const hashedPassword = hashSync(result.newPassword, 10);
-        
+
         await prisma.usuario.update({
             where: { id: user.id },
             data: { password: hashedPassword }
         })
 
-        return responds.success(req, res, {message: 'Contraseña actualizada correctamente.'}, 200);
+        return responds.success(req, res, { message: 'Contraseña actualizada correctamente.' }, 200);
 
     } catch (error) {
 
@@ -320,7 +400,7 @@ const changePassword = async (req,res) => {
             return responds.error(req, res, { message: error.details[0].message }, 422);
         }
 
-        return responds.error(req, res, { message: error.message}, 500);
+        return responds.error(req, res, { message: error.message }, 500);
     }
 
 }

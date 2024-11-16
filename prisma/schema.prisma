@@ -15,7 +15,7 @@ datasource db {
 
 model Usuario {
   id             Int            @id @default(autoincrement())
-  cargo          String         @db.VarChar(100)
+  cedula         String         @unique
   nombre         String         @db.VarChar(100)
   apellido       String         @db.VarChar(100)
   password       String         @db.VarChar(255)
@@ -25,7 +25,11 @@ model Usuario {
   tokens         RefreshToken[]
   invalid_tokens InvalidToken[]
 
-  @@map("usuarios")
+  // Tipos de Usuario
+  tipoUsuario   String
+  paciente      Paciente[]
+  doctor        Doctor[]
+  administrador Administrador[]
 }
 
 model RefreshToken {
@@ -33,8 +37,6 @@ model RefreshToken {
   refreshToken String  @db.VarChar(255)
   userId       Int
   usuario      Usuario @relation(fields: [userId], references: [id])
-
-  @@map("refreshTokens")
 }
 
 model InvalidToken {
@@ -45,3 +47,73 @@ model InvalidToken {
   usuario        Usuario @relation(fields: [userId], references: [id])
 }
 
+model Paciente {
+  id Int @id @default(autoincrement())
+
+  // Datos del Paciente
+  tipoSangre     String
+  direccion      String
+  numeroTelefono String
+  seguroMedico   String
+
+  historialMedico  HistorialMedico[]
+  resumenesMedicos ResumenMedico[]
+
+  userId  Int
+  usuario Usuario @relation(fields: [userId], references: [id])
+}
+
+model Doctor {
+  id Int @id @default(autoincrement())
+
+  // Datos del Doctor
+  especialidad   String
+  numeroTelefono String
+
+  resumenesMedicos ResumenMedico[]
+
+  userId  Int
+  usuario Usuario @relation(fields: [userId], references: [id])
+}
+
+model Administrador {
+  id Int @id @default(autoincrement())
+
+  userId  Int
+  usuario Usuario @relation(fields: [userId], references: [id])
+}
+
+model HistorialMedico {
+  id Int @id @default(autoincrement())
+
+  // Datos del Historial Medico
+  observaciones String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  pacienteId Int
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+
+  resumenesMedicos ResumenMedico[]
+}
+
+model ResumenMedico {
+  id Int @id @default(autoincrement())
+
+  // Datos del Resumen Medico
+  fecha         DateTime
+  diagnostico   String
+  tratamiento   String
+  observaciones String
+  tipoServicio  String
+
+  // Relaciones
+  doctorId Int
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  pacienteId Int
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+
+  historialMedicoId Int
+  historialMedico   HistorialMedico @relation(fields: [historialMedicoId], references: [id])
+}
