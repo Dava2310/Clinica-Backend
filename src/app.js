@@ -6,11 +6,9 @@ import responds from './red/responds.js';
 import cors from 'cors';
 
 // Importing routes
+import swaggerRouter from './swagger.js';
 import userRoutes from './routes/users.routes.js';
 import authRoutes from './routes/auth.routes.js';
-
-// Import Swagger setup
-import swaggerSetup from './swagger.js';  // Ajusta la ruta si es necesario
 
 // Initialization of the app
 const app = express();
@@ -38,8 +36,8 @@ app.get('/', (req, res) => {
     responds.success(req, res, {message: 'Hello World'}, 200);
 });
 
-// Integrate Swagger
-swaggerSetup(app);
+// Swagger Documentation Route
+app.use('/', swaggerRouter);
 
 // Exporting the app so index.js can import it
 export default app;

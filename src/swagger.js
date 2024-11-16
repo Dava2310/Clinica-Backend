@@ -1,41 +1,29 @@
-// swagger.js
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import express from 'express';
+
+const router = express.Router();
 
 const swaggerOptions = {
-    definition: {
+    swaggerDefinition: {
         openapi: '3.0.0',
         info: {
             title: 'API Documentation',
-            version: '1.2.0',
-            description: 'API REST in NodeJS and Express, with authentication and authorization via JWT and MySQL Database',
-        },
-        servers: [
-            {
+            version: '1.0.0',
+            description: 'API Documentation for Authentication Module',
+            contact: {
+                name: 'Your Name',
+            },
+            servers: [{
                 url: 'http://localhost:4000',
-                description: 'Local Server',
-            },
-        ],
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT',
-                },
-            },
-        },
-        security: [
-            {
-                bearerAuth: [], // Aplica bearerAuth a todas las rutas por defecto
-            },
-        ],
+                description: 'Local server'
+            }]
+        }
     },
-    apis: ['./src/modules/**/*.js'],
+    apis: ['./src/routes/*.js', './src/controllers/*.js']
 };
 
-const specs = swaggerJsDoc(swaggerOptions);
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-export default (app) => {
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-};
+export default router;
