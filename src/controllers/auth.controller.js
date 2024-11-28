@@ -5,6 +5,7 @@ import { compare, hashSync } from 'bcrypt'; // Bcrypt for hashing and comparing 
 import jwt from 'jsonwebtoken'; // JWT for generating and verifying JSON Web Tokens
 import Joi from 'joi'; // Joi for schema validation
 
+
 // --------------------
 // Configuration
 // --------------------
@@ -22,6 +23,7 @@ import prisma from '../../prisma/prismaClient.js'
 
 // Schema validation
 import schema from '../validations/userValidation.js'; // Schema for user input validation
+
 
 /**
  * Registers a new user by validating input data, checking for email duplication,
@@ -169,11 +171,11 @@ const loginUser = async (req, res) => {
         }
 
         // Verify type of user
-        const tipoUsuario = result.tipoUsuario;
+        // const tipoUsuario = result.tipoUsuario;
 
-        if (tipoUsuario != user.tipoUsuario) {
-            return responds.error(req, res, {message: 'El tipo de usuario no coincide.'}, 404);
-        }
+        // if (tipoUsuario != user.tipoUsuario) {
+        //     return responds.error(req, res, {message: 'El tipo de usuario no coincide.'}, 404);
+        // }
         
 
         // Generate access and refresh tokens
@@ -207,8 +209,9 @@ const loginUser = async (req, res) => {
         const data = {
             id: user.id,
             nombre: user.nombre,
+            apellido: user.apellido,
             email: user.email,
-            cargo: user.cargo,
+            tipoUsuario: user.tipoUsuario,
             accessToken,
             refreshToken
         };
