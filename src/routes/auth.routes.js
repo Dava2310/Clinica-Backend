@@ -4,6 +4,10 @@ import auth from '../middleware/auth.js';
 // Controller
 import ctrl from '../controllers/auth.controller.js'
 import responds from '../red/responds.js';
+import multer from 'multer';
+
+
+const upload = multer(); 
 const { registerUser, loginUser, refreshToken, logoutUser, changePassword } = ctrl
 
 const router = Router();
@@ -329,7 +333,7 @@ router.post('/api/auth/register', registerUser);
  *                       type: string
  *                       example: Internal server error
  */
-router.post('/api/auth/login', loginUser);
+router.post('/api/auth/login', upload.none(),loginUser);
 
 /**
  * @swagger
