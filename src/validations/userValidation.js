@@ -82,11 +82,11 @@ const userLogin = Joi.object({
         }),
 
     // Tipo de Usuario
-    tipoUsuario: Joi.string().valid('administrador', 'paciente', 'doctor').required().messages({
-        'any.required': 'Se debe indicar el tipo de usuario.',
-        'string.empty': 'Se debe indicar el tipo de usuario.',
-        // No se agrega mensaje para `any.only` para no exponer los valores válidos
-    })
+    // tipoUsuario: Joi.string().valid('administrador', 'paciente', 'doctor').required().messages({
+    //     'any.required': 'Se debe indicar el tipo de usuario.',
+    //     'string.empty': 'Se debe indicar el tipo de usuario.',
+    //     // No se agrega mensaje para `any.only` para no exponer los valores válidos
+    // })
 });
 
 const changePassword = Joi.object({
