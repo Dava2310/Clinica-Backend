@@ -58,6 +58,7 @@ model Paciente {
 
   historialMedico  HistorialMedico[]
   resumenesMedicos ResumenMedico[]
+  citas            Cita[]
 
   userId  Int
   usuario Usuario @relation(fields: [userId], references: [id])
@@ -71,6 +72,7 @@ model Doctor {
   numeroTelefono String
 
   resumenesMedicos ResumenMedico[]
+  citas            Cita[]
 
   userId  Int
   usuario Usuario @relation(fields: [userId], references: [id])
@@ -116,4 +118,20 @@ model ResumenMedico {
 
   historialMedicoId Int
   historialMedico   HistorialMedico @relation(fields: [historialMedicoId], references: [id])
+}
+
+model Cita {
+  id Int @id @default(autoincrement())
+
+  idPaciente Int
+  paciente   Paciente @relation(fields: [idPaciente], references: [id])
+
+  idDoctor Int
+  doctor   Doctor @relation(fields: [idDoctor], references: [id])
+
+  // Datos de la cita
+  tipoServicio  String
+  fecha         DateTime
+  estado        String // Solicitada, Aceptada, Rechazada
+  observaciones String
 }

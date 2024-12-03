@@ -60,6 +60,17 @@ const userEdit = Joi.object({
 
     // Email
     email: Joi.string().email().lowercase().required(),
+
+    cedula: Joi.string().required(),
+
+    // Datos por si fuera Paciente
+    tipoSangre: Joi.string(),
+    direccion: Joi.string(),
+    numeroTelefono: Joi.string(),
+    seguroMedico: Joi.string(),
+
+    // Datos por si fuera Doctor
+    especialidad: Joi.string(),
 })
 
 const userLogin = Joi.object({

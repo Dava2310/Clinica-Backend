@@ -9,6 +9,11 @@ import cors from 'cors';
 import swaggerRouter from './swagger.js';
 import userRoutes from './routes/users.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import doctorRoutes from './routes/doctores.routes.js'
+// import historialMedicoRoutes from './routes/historialMedico.routes.js'
+// import resumenMedicoRoutes from './routes/resumenMedico.routes.js'
+// import citasRoutes from './routes/citas.routes.js'
+import pacientesRoutes from './routes/pacientes.routes.js'
 
 // Initialization of the app
 const app = express();
@@ -30,6 +35,11 @@ app.use(morgan('dev'));
 // Including routes
 app.use(userRoutes);
 app.use(authRoutes);
+app.use('/api/doctores', doctorRoutes)
+// app.use('/api/historialesMedicos', historialMedicoRoutes)
+// app.use('/api/resumenesMedicos', resumenMedicoRoutes)
+// app.use('/api/citas', citasRoutes)
+app.use('/api/pacientes', pacientesRoutes)
 
 // Main Route
 app.get('/', (req, res) => {
