@@ -16,8 +16,13 @@ const schema = Schemas.userEdit;
 
 const getUsers = async (req, res) => {
 
+    const { tipoUsuario } = req.params; 
     try {
-        const allUsuarios = await prisma.usuario.findMany();
+        const allUsuarios = await prisma.usuario.findMany({
+            where:{
+                tipoUsuario:tipoUsuario
+            }
+        });
         return responds.success(req, res, { data: allUsuarios }, 200);
     }
     catch (error) {

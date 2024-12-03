@@ -231,7 +231,7 @@ const router = Router();
  *                       example: Internal server error
  */
 
-router.post('/api/auth/register', registerUser);
+router.post('/api/auth/register', upload.none(),registerUser);
 
 /**
  * @swagger

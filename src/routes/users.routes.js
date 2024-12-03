@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/api/users/current', auth.ensureAuthenticated, ctrl.viewUser);
 
-router.get('/api/users/', auth.ensureAuthenticated, ctrl.getUsers)
+router.get('/api/users/:tipoUsuario', auth.ensureAuthenticated, ctrl.getUsers)
 
 router.get('/api/users/:userId', auth.ensureAuthenticated, validate.validateAndConvertId('userId'), ctrl.getOneUser)
 
