@@ -171,6 +171,33 @@ const deleteUser = async (req, res) => {
             }
         });
 
+        // En paralelo, hay que encontrar el tipo de usuario que es y eliminarlo
+        const tipoUsuario = usuario.tipoUsuario;
+
+        if (tipoUsuario === 'paciente') {
+            
+            await prisma.paciente.deleteMany({
+                where: {
+                    userId: usuario.id
+                }
+            })
+
+        } else if (tipoUsuario === 'doctor') {
+            await prisma.doctor.deleteMany({
+                where: {
+                    userId: usuario.id
+                }
+            })
+        } else {
+            await prisma.administrador.deleteMany({
+                where: {
+                    userId: usuario.id
+                }
+            })
+        }
+
+        // Posteriormente, hacer la eliminacion del usuario formal.
+
         await prisma.usuario.delete({
             where: {
                 id: userId

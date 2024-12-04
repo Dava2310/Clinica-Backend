@@ -44,7 +44,7 @@ const encontrarDoctor = async (doctorId) => {
 const getDoctores = async (req, res) => {
     try {
 
-        // Obteniendo todos los pacientes desde PRISMA
+        // Obteniendo todos los doctores desde PRISMA
         const doctores = await prisma.doctor.findMany();
 
         // Rellenando los datos de usuario
@@ -63,7 +63,7 @@ const getDoctores = async (req, res) => {
                 return responds.error(req, res, {message: 'Hubo un problema con la busqueda de datos.'}, 401);
             }
 
-            // Rellenando el resto de los datos que no pertenecen a la entidad paciente
+            // Rellenando el resto de los datos que no pertenecen a la entidad doctor
             doctor.nombre = usuario.nombre
             doctor.apellido = usuario.apellido
             doctor.cedula = usuario.cedula
@@ -71,7 +71,7 @@ const getDoctores = async (req, res) => {
 
         }
 
-        // Devolviendo los datos de todos los pacientes
+        // Devolviendo los datos de todos los doctores
         return responds.success(req, res, { data: doctores }, 200);
 
     } catch (error) {
@@ -112,140 +112,134 @@ const getOneDoctor = async (req, res) => {
     }
 }
 
-// const editPaciente = async (req, res) => {
-//     try {
+const editDoctor = async (req, res) => {
+    try {
 
-//         // Obteniendo el ID del paciente despues de haber pasado por el middleware
-//         const { pacienteId } = req.params;
+        // Obteniendo el ID del doctor despues de haber pasado por el middleware
+        const { doctorId } = req.params;
 
-//         // Verificando la existencia del paciente
-//         const paciente = await encontrarPaciente(pacienteId);
-//         if (!paciente) {
-//             return responds.error(req, res, { message: 'Paciente no encontrado.' }, 404);
-//         }
+        // Verificando la existencia del doctor
+        const doctor = await encontrarDoctor(doctorId);
+        if (!doctor) {
+            return responds.error(req, res, { message: 'Doctor no encontrado.' }, 404);
+        }
 
-//         // Hay que validar los datos que pertenecen a la entidad usuario y los que pertenecen a la entidad paciente
+        // Hay que validar los datos que pertenecen a la entidad usuario y los que pertenecen a la entidad doctor
 
-//         // 1. Verificando contra el esquema general
-//         const datos = await Schemas.userEdit.validateAsync(req.body);
+        // 1. Verificando contra el esquema general
+        const datos = await Schemas.userEdit.validateAsync(req.body);
 
-//         // 2. Verificando los datos contra el esquema especifico de paciente
-//         await Schemas.pacienteRegister.validateAsync({
-//             tipoSangre: datos.tipoSangre,
-//             direccion: datos.direccion,
-//             numeroTelefono: datos.numeroTelefono,
-//             seguroMedico: datos.seguroMedico
-//         })
+        // 2. Verificando los datos contra el esquema especifico de doctor
+        await Schemas.doctorRegister.validateAsync({
+            especialidad: datos.especialidad,
+            numeroTelefono: datos.numeroTelefono
+        })
 
-//         // 3. Hay que verificar que no se este duplicando el email
-//         const emailDuplicado = await prisma.usuario.findFirst({
-//             where: {
-//                 email: datos.email,
-//                 NOT: { id: paciente.userId }
-//             }
-//         })
+        // 3. Hay que verificar que no se este duplicando el email
+        const emailDuplicado = await prisma.usuario.findFirst({
+            where: {
+                email: datos.email,
+                NOT: { id: doctor.userId }
+            }
+        })
 
-//         if (emailDuplicado) {
-//             return responds.error(req, res, { message: 'El email ya está en uso.' }, 409);
-//         }
+        if (emailDuplicado) {
+            return responds.error(req, res, { message: 'El email ya está en uso.' }, 409);
+        }
 
-//         // 4. Hay que verificar que no se este duplicando la cedula
-//         const cedulaDuplicada = await prisma.usuario.findFirst({
-//             where: {
-//                 cedula: datos.cedula,
-//                 NOT: { id: paciente.userId }
-//             }
-//         })
+        // 4. Hay que verificar que no se este duplicando la cedula
+        const cedulaDuplicada = await prisma.usuario.findFirst({
+            where: {
+                cedula: datos.cedula,
+                NOT: { id: doctor.userId }
+            }
+        })
 
-//         if (cedulaDuplicada) {
-//             return responds.error(req, res, { message: 'La cedula ya está en uso.' }, 409);
-//         }
+        if (cedulaDuplicada) {
+            return responds.error(req, res, { message: 'La cedula ya está en uso.' }, 409);
+        }
 
-//         // Una vez verificados los datos, se realiza la modificacion
-//         const datosParaEdicion = {
-//             nombre: datos.nombre,
-//             apellido: datos.apellido,
-//             email: datos.email,
-//             cedula: datos.cedula,
-//             tipoSangre: datos.tipoSangre,
-//             direccion: datos.direccion,
-//             numeroTelefono: datos.numeroTelefono,
-//             seguroMedico: datos.seguroMedico
-//         }
+        // Una vez verificados los datos, se realiza la modificacion
+        const datosParaEdicion = {
+            nombre: datos.nombre,
+            apellido: datos.apellido,
+            email: datos.email,
+            cedula: datos.cedula,
+            especialidad: datos.especialidad,
+            numeroTelefono: datos.numeroTelefono,
+        }
 
 
-//         // Realizando la modificacion en la entidad de paciente
-//         const pacienteEditado = await prisma.paciente.update({
-//             where: {
-//                 id: pacienteId
-//             },
-//             data: {
-//                 tipoSangre: datosParaEdicion.tipoSangre,
-//                 direccion: datosParaEdicion.direccion,
-//                 numeroTelefono: datosParaEdicion.numeroTelefono,
-//                 seguroMedico: datosParaEdicion.seguroMedico
-//             }
-//         })
+        // Realizando la modificacion en la entidad de doctor
+        const doctorEditado = await prisma.doctor.update({
+            where: {
+                id: doctorId
+            },
+            data: {
+                numeroTelefono: datosParaEdicion.numeroTelefono,
+                especialidad: datosParaEdicion.especialidad    
+            }
+        })
 
-//         await prisma.usuario.update({
-//             where: {
-//                 id: paciente.userId
-//             },
-//             data: {
-//                 nombre: datosParaEdicion.nombre,
-//                 apellido: datosParaEdicion.apellido,
-//                 email: datosParaEdicion.email,
-//                 cedula: datosParaEdicion.cedula,
-//             }
-//         })
+        await prisma.usuario.update({
+            where: {
+                id: doctor.userId
+            },
+            data: {
+                nombre: datosParaEdicion.nombre,
+                apellido: datosParaEdicion.apellido,
+                email: datosParaEdicion.email,
+                cedula: datosParaEdicion.cedula,
+            }
+        })
         
-//         return responds.success(req, res, { message: 'Modificación de datos realizada con éxito.', data: pacienteEditado }, 200);
+        return responds.success(req, res, { message: 'Modificación de datos realizada con éxito.', data: doctorEditado }, 200);
 
-//     } catch (error) {
+    } catch (error) {
 
-//         if (error instanceof Joi.ValidationError) {
-//             return responds.error(req, res, { message: error.message }, 422)
-//         }
+        if (error instanceof Joi.ValidationError) {
+            return responds.error(req, res, { message: error.message }, 422)
+        }
 
-//         return responds.error(req, res, { message: error.message }, 500);
-//     }
-// }
+        return responds.error(req, res, { message: error.message }, 500);
+    }
+}
 
-// const deletePaciente = async (req, res) => {
-//     try {
+const deleteDoctor = async (req, res) => {
+    try {
 
-//         // Obteniendo el ID del paciente despues de haber pasado por el middleware
-//         const { pacienteId } = req.params;
+        // Obteniendo el ID del doctor despues de haber pasado por el middleware
+        const { doctorId } = req.params;
 
-//         // Verificando la existencia del paciente
-//         const paciente = await encontrarPaciente(pacienteId);
-//         if (!paciente) {
-//             return responds.error(req, res, { message: 'Paciente no encontrado.' }, 404);
-//         }
+        // Verificando la existencia del doctor
+        const doctor = await encontrarDoctor(doctorId);
+        if (!doctor) {
+            return responds.error(req, res, { message: 'Doctor no encontrado.' }, 404);
+        }
 
-//         // Para hacer una eliminacion de paciente, hay que primero eliminar la entidad paciente y posteriormente la entidad usuario
-//         const usuarioId = paciente.userId; // ID del usuario con que eliminaramos la entidad
+        // Para hacer una eliminacion de doctor, hay que primero eliminar la entidad doctor y posteriormente la entidad usuario
+        const usuarioId = doctor.userId; // ID del usuario con que eliminaramos la entidad
 
-//         // 1. Eliminando el paciente
-//         await prisma.paciente.delete({
-//             where: {
-//                 id: pacienteId
-//             }
-//         })
+        // 1. Eliminando el doctor
+        await prisma.doctor.delete({
+            where: {
+                id: doctorId
+            }
+        })
 
-//         // 2. Eliminando el usuario
-//         await prisma.usuario.delete({
-//             where: {
-//                 id: usuarioId
-//             }
-//         })
+        // 2. Eliminando el usuario
+        await prisma.usuario.delete({
+            where: {
+                id: usuarioId
+            }
+        })
 
-//         // 3. Enviando la respuesta al usuario
-//         return responds.success(req, res, { message: 'Eliminación realizada con éxito.' }, 200);
+        // 3. Enviando la respuesta al usuario
+        return responds.success(req, res, { message: 'Eliminación realizada con éxito.' }, 200);
 
-//     } catch (error) {
-//         return responds.error(req, res, { message: error.message }, 500);
-//     }
-// }
+    } catch (error) {
+        return responds.error(req, res, { message: error.message }, 500);
+    }
+}
 
-export default { getDoctores, getOneDoctor}
+export default { getDoctores, getOneDoctor, deleteDoctor, editDoctor}

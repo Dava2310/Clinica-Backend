@@ -20,8 +20,8 @@ const router = Router();
 // Rutas
 router.get('/', upload.none(), auth.ensureAuthenticated, ctrl.getDoctores);
 router.get('/:doctorId', auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.getOneDoctor);
-// router.patch('/:doctorId', auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.editDoctor);
-// router.delete('/:doctorId', auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.deleteDoctor)
+router.patch('/:doctorId', auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.editDoctor);
+router.delete('/:doctorId', auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.deleteDoctor)
 
 // Nota: No existe ruta de creación porque su creación depende de la de un usuario
 
