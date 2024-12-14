@@ -17,7 +17,7 @@ const AsignacionDoctor = Joi.object({
     idDoctor: Joi.number().required(),
     fecha: Joi.date().required(),
     observaciones: Joi.string(),
-    horaEstimada: Joi.string(),
+    horaEstimada: Joi.string().required(),
 })
 
 const EdicionCita = Joi.object({

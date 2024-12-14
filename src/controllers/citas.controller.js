@@ -70,7 +70,7 @@ const getCitasByDoctor = async (req, res) => {
         // Buscando todas las citas por este doctor
         const citas = await prisma.cita.findMany({
             where: {
-                doctorId: doctorId
+                idDoctor: doctorId
             }
         })
 
@@ -161,11 +161,17 @@ const asignarDoctor = async (req, res) => {
             return responds.error(req, res, { message: 'Cita no encontrada.' }, 404);
         }
 
+        // Verificar si ya tiene un doctor asignado
+        if (cita.estado === 'Asignada') {
+            return responds.error(req, res, { message: 'No se puede re asignar un doctor a una cita.' }, 409);
+        }
+
         // Obteniendo los datos de la asignacion y validando contra el esquema
         const data = await Schemas.AsignacionDoctor.validateAsync(req.body)
 
         // Obteniendo el ID del doctor de los datos validados
-        const { idDoctor, fecha, observaciones, horaEstimada } = data;
+        const { idDoctor, fecha, horaEstimada } = data;
+        let { observaciones } = data;
 
         // Buscando al doctor
         const doctor = await prisma.doctor.findUnique({
@@ -237,10 +243,10 @@ const finalizarCita = async (req, res) => {
             }
         })
 
-        return responds.success(req, res, {message: 'Cita finalizada con éxito.'}, 200);
+        return responds.success(req, res, { message: 'Cita finalizada con éxito.' }, 200);
 
     } catch (error) {
-        return responds.error(req, res, {message: error.message}, 500);
+        return responds.error(req, res, { message: error.message }, 500);
     }
 }
 

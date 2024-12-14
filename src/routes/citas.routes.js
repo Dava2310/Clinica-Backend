@@ -35,7 +35,7 @@ router.get('/paciente/:pacienteId', upload.none(), auth.ensureAuthenticated, val
 router.post('/', upload.none(), auth.ensureAuthenticated, ctrl.createCita)
 
 // Ruta para asignar doctor a una cita
-router.patch('/asignarDoctor/:citaId', upload.none(), auth.ensureAuthenticated, ctrl.asignarDoctor)
+router.patch('/asignarDoctor/:citaId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('citaId'), ctrl.asignarDoctor)
 
 // Ruta para cambiar el estado de una cita
 router.get('/finalizar/:citaId', upload.none(), auth.ensureAuthenticated, ctrl.finalizarCita)
