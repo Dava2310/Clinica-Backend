@@ -12,7 +12,7 @@ import authRoutes from './routes/auth.routes.js';
 import doctorRoutes from './routes/doctores.routes.js'
 // import historialMedicoRoutes from './routes/historialMedico.routes.js'
 // import resumenMedicoRoutes from './routes/resumenMedico.routes.js'
-// import citasRoutes from './routes/citas.routes.js'
+import citasRoutes from './routes/citas.routes.js'
 import pacientesRoutes from './routes/pacientes.routes.js'
 
 // Initialization of the app
@@ -40,6 +40,7 @@ app.use('/api/doctores', doctorRoutes)
 // app.use('/api/resumenesMedicos', resumenMedicoRoutes)
 // app.use('/api/citas', citasRoutes)
 app.use('/api/pacientes', pacientesRoutes)
+app.use('/api/citas', citasRoutes)
 
 // Main Route
 app.get('/', (req, res) => {
