@@ -118,6 +118,9 @@ model ResumenMedico {
 
   historialMedicoId Int
   historialMedico   HistorialMedico @relation(fields: [historialMedicoId], references: [id])
+
+  citaId Int
+  cita Cita @relation(fields: [citaId], references: [id])
 }
 
 model Cita {
@@ -126,12 +129,16 @@ model Cita {
   idPaciente Int
   paciente   Paciente @relation(fields: [idPaciente], references: [id])
 
-  idDoctor Int
-  doctor   Doctor @relation(fields: [idDoctor], references: [id])
+  idDoctor Int?
+  doctor   Doctor? @relation(fields: [idDoctor], references: [id])
 
   // Datos de la cita
   tipoServicio  String
-  fecha         DateTime
-  estado        String // Solicitada, Aceptada, Rechazada
-  observaciones String
+  fecha         DateTime?
+  estado        String   @default("Solicitada") // Solicitada, Asignada, Finalizada
+  observaciones String?
+  horaEstimada  String?
+
+  // Relacion con el resumen medico
+  resumenMedico ResumenMedico[]
 }
