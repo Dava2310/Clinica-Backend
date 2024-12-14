@@ -104,7 +104,8 @@ const registerUser = async (req, res) => {
                     }
                 });
             } else if (result.tipoUsuario === 'paciente') {
-                await prisma.paciente.create({
+                
+                const paciente = await prisma.paciente.create({
                     data: {
                         userId: user.id,
                         tipoSangre: data.tipoSangre,
@@ -113,6 +114,15 @@ const registerUser = async (req, res) => {
                         seguroMedico: data.seguroMedico
                     }
                 });
+
+                // Para el paciente debemos crear un historial medico
+                await prisma.historialMedico.create({
+                    data: {
+                        pacienteId: paciente.id
+                    }
+                })
+
+
             } else if (result.tipoUsuario === 'administrador') {
                 await prisma.administrador.create({
                     data: {
