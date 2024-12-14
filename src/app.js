@@ -11,7 +11,7 @@ import userRoutes from './routes/users.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import doctorRoutes from './routes/doctores.routes.js'
 import historialMedicoRoutes from './routes/historialMedico.routes.js'
-// import resumenMedicoRoutes from './routes/resumenMedico.routes.js'
+import resumenMedicoRoutes from './routes/resumenMedico.routes.js'
 import citasRoutes from './routes/citas.routes.js'
 import pacientesRoutes from './routes/pacientes.routes.js'
 
@@ -37,8 +37,7 @@ app.use(userRoutes);
 app.use(authRoutes);
 app.use('/api/doctores', doctorRoutes)
 app.use('/api/historiales', historialMedicoRoutes)
-// app.use('/api/resumenesMedicos', resumenMedicoRoutes)
-// app.use('/api/citas', citasRoutes)
+app.use('/api/resumenes', resumenMedicoRoutes)
 app.use('/api/pacientes', pacientesRoutes)
 app.use('/api/citas', citasRoutes)
 
