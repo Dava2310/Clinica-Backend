@@ -162,9 +162,7 @@ const createResumen = async (req, res) => {
         if (!cita) {
             return responds.error(req, res, {message: 'La cita no pudo ser encontrada.'}, 404);
         }
-
-        console.log(cita.idPaciente)
-
+        
         const historialMedico = await prisma.historialMedico.findFirst({
             where: {
                 pacienteId: cita.idPaciente
@@ -186,6 +184,15 @@ const createResumen = async (req, res) => {
                 pacienteId: cita.idPaciente,
                 historialMedicoId: historialMedico.id,
                 citaId: cita.id
+            }
+        })
+
+        await prisma.cita.update({
+            where: {
+                id: cita.id
+            },
+            data: {
+                estado: 'Finalizada'
             }
         })
 

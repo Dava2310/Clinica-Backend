@@ -2,22 +2,19 @@ import Joi from "joi";
 
 const RegistroCita = Joi.object({
 
-    // Id Paciente
-    idPaciente: Joi.number().required(),
-
     // Tipo de Servicio
     tipoServicio: Joi.string().required(),
+
+    // Especialidad
+    especialidad: Joi.string().required(),
 
 })
 
 const AsignacionDoctor = Joi.object({
 
     // Datos del Doctor
-
     idDoctor: Joi.number().required(),
     fecha: Joi.date().required(),
-    observaciones: Joi.string(),
-    horaEstimada: Joi.string().required(),
 })
 
 const EdicionCita = Joi.object({
@@ -33,9 +30,6 @@ const EdicionCita = Joi.object({
 
     // Fecha
     fecha: Joi.date().required(),
-
-    // Observaciones
-    observaciones: Joi.string().required(),
 
     // Estado
     estado: Joi.string().required(),

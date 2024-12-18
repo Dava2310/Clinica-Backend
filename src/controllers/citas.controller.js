@@ -117,21 +117,29 @@ const createCita = async (req, res) => {
         // Obteniendo los datos y comparandolos con el Schema de la libreria JOI
         const datos = await RegistroCita.validateAsync(req.body);
 
-        // Buscando la existencia del paciente
+        const paciente = await prisma.paciente.findFirst({
+            where: {
+                userId: req.user.id
+            }
+        })        
 
-        if (!(await prisma.paciente.findUnique({ where: { id: datos.idPaciente } }))) {
+        if (!paciente) {
             return responds.error(req, res, { message: 'Paciente no encontrado.' }, 404);
         }
 
         // TODO: Verificar la incompantiblidad con las horas
 
-        // Creando la cita
+        // Creando la cita / Solicitando
         const nuevaCita = await prisma.cita.create({
-            data: datos
+            data: {
+                idPaciente: paciente.id,
+                tipoServicio: datos.tipoServicio,
+                especialidad: datos.especialidad
+            }
         })
 
         // Devolviendo un mensaje de exito mas los datos de la cita creada
-        return responds.success(req, res, { message: 'Cita creada con éxito.', data: nuevaCita }, 200);
+        return responds.success(req, res, { message: 'Cita solicitada con éxito.', data: nuevaCita }, 200);
 
     } catch (error) {
 
@@ -142,6 +150,86 @@ const createCita = async (req, res) => {
         return responds.error(req, res, { message: error.message }, 500);
     }
 
+}
+
+const getOpciones = async (req, res) => {
+    try {
+        
+        const { idCita } = req.params;
+
+        const cita = await prisma.cita.findUnique({
+            where: {
+                id: idCita
+            }
+        })
+
+        if (!cita) {
+            return responds.error(req, res, {message: 'La cita no fue encontrada.'}, 404);
+        }
+
+        const opciones = await prisma.opcionesCita.findMany({
+            where: {
+                idCita: idCita
+            }
+        })
+
+        if (opciones.length < 1) {
+            return responds.error(req, res, {message: 'La cita no tiene opciones disponibles.'}, 401);
+        }
+
+        const data = {
+            tipoServicio: cita.tipoServicio,
+            especialidad: cita.especialidad,
+            estado: cita.estado,
+            opciones: opciones 
+        }
+
+        return responds.success(req, res, {message: 'Opciones encontradas.', data: data}, 200);
+
+    } catch (error) {
+        return responds.error(req, res, {message: error.message}, 500);
+    }
+}
+
+const crearOpciones = async (req, res) => {
+    try {
+
+        const datos = [...req.body];
+
+        // Verificar el tamaño del arreglo
+        if (datos.length < 1) {
+            return responds.error(req, res, { message: 'Debe seleccionar al menos una opción.' }, 401);
+        }
+
+        const idCita = datos[0].idCita;
+
+        await prisma.$transaction(async (prisma) => {
+            // Recorre cada opción en los datos y crea la entrada en la tabla opcionesCita
+            for (const opcion of datos) {
+                await prisma.opcionesCita.create({
+                    data: {
+                        idCita: opcion.idCita,
+                        fecha: new Date(opcion.fecha),
+                        idDoctor: opcion.idDoctor
+                    }
+                });
+            }
+
+            await prisma.cita.update({
+                where: {
+                    id: idCita
+                }, 
+                data: {
+                    estado: "Opciones"
+                }
+            })
+        })
+
+        return responds.success(req, res, {message: 'Opciones creadas de forma exitosa'}, 200);
+
+    } catch (error) {
+        return responds.error(req, res, { message: error.message }, 500);
+    }
 }
 
 const asignarDoctor = async (req, res) => {
@@ -162,7 +250,7 @@ const asignarDoctor = async (req, res) => {
         }
 
         // Verificar si ya tiene un doctor asignado
-        if (cita.estado === 'Asignada') {
+        if (cita.estado === 'Programada') {
             return responds.error(req, res, { message: 'No se puede re asignar un doctor a una cita.' }, 409);
         }
 
@@ -170,8 +258,7 @@ const asignarDoctor = async (req, res) => {
         const data = await Schemas.AsignacionDoctor.validateAsync(req.body)
 
         // Obteniendo el ID del doctor de los datos validados
-        const { idDoctor, fecha, horaEstimada } = data;
-        let { observaciones } = data;
+        const { idDoctor, fecha } = data;
 
         // Buscando al doctor
         const doctor = await prisma.doctor.findUnique({
@@ -184,10 +271,6 @@ const asignarDoctor = async (req, res) => {
             return responds.success(req, res, { message: 'Doctor no encontrado.' }, 404);
         }
 
-        if (observaciones === undefined) {
-            observaciones = "";
-        }
-
         // Asignando los datos como el ID del doctor, observaciones, etc
         const citaEditada = await prisma.cita.update({
             where: {
@@ -196,9 +279,7 @@ const asignarDoctor = async (req, res) => {
             data: {
                 idDoctor: doctor.id,
                 fecha: fecha,
-                observaciones: observaciones,
-                horaEstimada: horaEstimada,
-                estado: 'Asignada'
+                estado: 'Programada'
             }
         })
 
@@ -213,6 +294,41 @@ const asignarDoctor = async (req, res) => {
 
 
         return responds.error(req, res, { message: error.message }, 500);
+    }
+}
+
+const cancelarCita = async (req, res) => {
+    try{
+
+        const { citaId } = req.params;
+
+        const cita = await prisma.cita.findUnique({
+            where: {
+                id: citaId
+            }
+        })
+
+        if (!cita) {
+            return responds.error(req, res, {message: 'La cita no fue encontrada.'}, 404);
+        }
+
+        if (cita.estado === 'Finalizada') {
+            return responds.error(req, res, {message: 'La cita se encuentra finalizada.'}, 401);
+        }
+
+        await prisma.cita.update({
+            where: {
+                id: citaId
+            },
+            data: {
+                estado: 'Cancelada'
+            }
+        })
+
+        return responds.success(req, res, {message: 'Cita cancelada exitosamente.'}, 200);
+
+    }catch(error) {
+        return responds.error(req, res, {message: error.message}, 500);
     }
 }
 
@@ -342,4 +458,4 @@ const deleteCita = async (req, res) => {
 }
 
 
-export default { getCitas, getOneCita, getCitasByDoctor, getCitasByPaciente, createCita, editCita, deleteCita, asignarDoctor, finalizarCita }
+export default { getCitas, getOneCita, getCitasByDoctor, getCitasByPaciente, createCita, editCita, deleteCita, crearOpciones, getOpciones, asignarDoctor, cancelarCita, finalizarCita }
