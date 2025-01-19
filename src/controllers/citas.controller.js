@@ -90,7 +90,7 @@ const getCitasByPaciente = async (req, res) => {
         const { pacienteId } = req.params;
 
         // Verificando la existencia del paciente
-        if (!(await prisma.paciente.findUnique({ where: { id: pacienteId } }))) {
+        if (!(await prisma.paciente.findFirst({ where: { userId: pacienteId } }))) {
             return responds.error(req, res, { message: 'Paciente no encontrado' }, 404);
         }
 
@@ -139,7 +139,7 @@ const createCita = async (req, res) => {
         })
 
         // Devolviendo un mensaje de exito mas los datos de la cita creada
-        return responds.success(req, res, { message: 'Cita solicitada con éxito.', data: nuevaCita }, 200);
+        return responds.success(req, res, { message: 'Cita solicitada con éxito.', data: nuevaCita }, 201);
 
     } catch (error) {
 
@@ -195,7 +195,8 @@ const crearOpciones = async (req, res) => {
     try {
 
         const datos = [...req.body];
-
+        //return responds.success(req, res, {message: 'Opciones creadas de forma exitosa', d:datos}, 200);
+        
         // Verificar el tamaño del arreglo
         if (datos.length < 1) {
             return responds.error(req, res, { message: 'Debe seleccionar al menos una opción.' }, 401);
@@ -206,10 +207,16 @@ const crearOpciones = async (req, res) => {
         await prisma.$transaction(async (prisma) => {
             // Recorre cada opción en los datos y crea la entrada en la tabla opcionesCita
             for (const opcion of datos) {
+
+                const fecha = new Date(opcion.fecha);  // Asegúrate de que la fecha esté en formato Date
+
+                if (isNaN(fecha)) {
+                    return responds.error(req, res, { message: 'Fecha inválida proporcionada.' }, 400);
+                }
                 await prisma.opcionesCita.create({
                     data: {
                         idCita: opcion.idCita,
-                        fecha: new Date(opcion.fecha),
+                        fecha: fecha,
                         idDoctor: opcion.idDoctor
                     }
                 });
@@ -225,7 +232,7 @@ const crearOpciones = async (req, res) => {
             })
         })
 
-        return responds.success(req, res, {message: 'Opciones creadas de forma exitosa'}, 200);
+        return responds.success(req, res, {message: 'Opciones creadas de forma exitosa'}, 201);
 
     } catch (error) {
         return responds.error(req, res, { message: error.message }, 500);
