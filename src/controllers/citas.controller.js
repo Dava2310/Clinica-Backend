@@ -87,17 +87,19 @@ const getCitasByPaciente = async (req, res) => {
 
     try {
 
-        const { pacienteId } = req.params;
+        const { userId } = req.params;
+
+        const paciente = await prisma.paciente.findFirst({ where: { userId: userId } })
 
         // Verificando la existencia del paciente
-        if (!(await prisma.paciente.findFirst({ where: { userId: pacienteId } }))) {
+        if (!(paciente)) {
             return responds.error(req, res, { message: 'Paciente no encontrado' }, 404);
         }
 
-        // Buscando todas las citas por este pacietne
+        // Buscando todas las citas por este paciente
         const citas = await prisma.cita.findMany({
             where: {
-                idPaciente: pacienteId
+                idPaciente: paciente.id
             }
         })
 
