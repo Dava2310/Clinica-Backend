@@ -60,17 +60,19 @@ const getCitasByDoctor = async (req, res) => {
 
     try {
 
-        const { doctorId } = req.params;
+        const { userId } = req.params;
+
+        const doctor = await prisma.doctor.findFirst({ where: { id: userId } }) 
 
         // Verificando la existencia del doctor
-        if (!(await prisma.doctor.findUnique({ where: { id: doctorId } }))) {
+        if (!(doctor)) {
             return responds.error(req, res, { message: 'Doctor no encontrado' }, 404);
         }
 
         // Buscando todas las citas por este doctor
         const citas = await prisma.cita.findMany({
             where: {
-                idDoctor: doctorId
+                idDoctor: doctor.id
             }
         })
 

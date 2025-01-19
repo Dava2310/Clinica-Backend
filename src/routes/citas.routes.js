@@ -26,7 +26,7 @@ router.get('/', upload.none(), auth.ensureAuthenticated, ctrl.getCitas)
 router.get('/:citaId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('citaId'), ctrl.getOneCita)
 
 // Ruta para ver todas las citas de un doctor en particular
-router.get('/doctor/:doctorId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('doctorId'), ctrl.getCitasByDoctor)
+router.get('/doctor/:userId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('userId'), ctrl.getCitasByDoctor)
 
 // Ruta para ver todas las citas de un paciente en particular
 router.get('/paciente/:userId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('userId'), ctrl.getCitasByPaciente)
