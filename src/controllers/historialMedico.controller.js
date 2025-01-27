@@ -18,7 +18,27 @@ const { ModificacionHistorial } = Schemas
 const getHistoriales = async (req, res) => {
     try {
 
-        const historiales = await prisma.historialMedico.findMany();
+        const historiales = await prisma.historialMedico.findMany({
+            include: {
+                paciente: {
+                    include: {
+                        usuario: true
+                    }
+                },
+                resumenesMedicos: {
+                    include: {
+                        doctor: {
+                            include: {
+                                usuario: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        id: 'desc'
+                    }
+                }
+            }
+        });
         return responds.success(req, res, { data: historiales }, 200);
 
     } catch (error) {
@@ -34,6 +54,25 @@ const getOneHistorial = async (req, res) => {
         const historial = await prisma.historialMedico.findUnique({
             where: {
                 id: historialId
+            },
+             include: {
+                paciente: {
+                    include: {
+                        usuario: true
+                    }
+                },
+                resumenesMedicos: {
+                    include: {
+                        doctor: {
+                            include: {
+                                usuario: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        id: 'desc'
+                    }
+                }
             }
         })
 

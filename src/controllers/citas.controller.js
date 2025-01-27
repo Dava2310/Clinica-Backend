@@ -19,7 +19,15 @@ const getCitas = async (req, res) => {
 
     try {
 
-        const citas = await prisma.cita.findMany();
+        const citas = await prisma.cita.findMany({
+            include: {
+                paciente: {
+                    include:{
+                        usuario: true
+                    }
+                }
+            }
+        });
         return responds.success(req, res, { data: citas }, 200);
 
     } catch (error) {
@@ -62,7 +70,7 @@ const getCitasByDoctor = async (req, res) => {
 
         const { userId } = req.params;
 
-        const doctor = await prisma.doctor.findFirst({ where: { id: userId } })
+        const doctor = await prisma.doctor.findFirst({ where: { userId: userId } })
 
         // Verificando la existencia del doctor
         if (!(doctor)) {
@@ -70,11 +78,20 @@ const getCitasByDoctor = async (req, res) => {
         }
 
         // Buscando todas las citas por este doctor
+        // Buscando todas las citas por este doctor
         const citas = await prisma.cita.findMany({
             where: {
                 idDoctor: doctor.id
+            },
+            include: {
+                paciente: {
+                    include: {
+                        usuario: true // Incluir todos los campos del usuario
+                    }
+                }
             }
-        })
+        });
+
 
         // Devolviendo los datos de esas citas
         return responds.success(req, res, { data: citas }, 200);
@@ -102,6 +119,13 @@ const getCitasByPaciente = async (req, res) => {
         const citas = await prisma.cita.findMany({
             where: {
                 idPaciente: paciente.id
+            },
+            include:{
+                paciente:{
+                    include:{
+                        usuario: true
+                    }
+                }
             }
         })
 
@@ -190,15 +214,27 @@ const getOpciones = async (req, res) => {
             // En caso de que si hayan opciones, se manda la informacion del doctor
             doctor = await prisma.doctor.findFirst({
                 where: {
-                    id: cita.idDoctor
+                    id: opciones[0].idDoctor
                 }
             })
+
+            //Extraemos los datos personales del doctor
+            const data = await prisma.usuario.findFirst({
+                where: {
+                    id: doctor.userId
+                }
+            })
+
+            doctor = {...doctor, ...data};
         }
 
         // Consiguiendo la información del paciente
-        const paciente = await prisma.paciente.findFirst({
+        let paciente = await prisma.paciente.findFirst({
             where: {
                 id: cita.idPaciente
+            },
+            include:{
+                usuario: true
             }
         })
 
@@ -208,7 +244,8 @@ const getOpciones = async (req, res) => {
             estado: cita.estado,
             opciones: opciones,
             paciente: paciente,
-            doctor: doctor
+            doctor: doctor,
+            fecha: cita.fecha
         }
 
         return responds.success(req, res, { message: 'Opciones encontradas.', data: data }, 200);

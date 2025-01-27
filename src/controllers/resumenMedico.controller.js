@@ -34,6 +34,13 @@ const getOneResumen = async (req, res) => {
         const resumen = await prisma.resumenMedico.findUnique({
             where: {
                 id: resumenId
+            },
+            include: {
+                paciente: {
+                    include: {
+                        usuario:true
+                    }
+                } 
             }
         })
 

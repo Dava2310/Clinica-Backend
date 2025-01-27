@@ -35,7 +35,7 @@ router.get('/historial/:historialId', upload.none(), auth.ensureAuthenticated, v
 router.get('/cita/:citaId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('citaId'), ctrl.getResumenesByCita)
 
 // Obtener resumen medico por ID
-router.get('/:resumenId', upload.none(), auth.ensureAuthenticated, validateAndConvertId('resumenId'), ctrl.getOneResumen)
+router.get('/:resumenId', upload.none(), validateAndConvertId('resumenId'), ctrl.getOneResumen)
 
 // Creacion de resumen medico
 router.post('/', upload.none(), auth.ensureAuthenticated, ctrl.createResumen)

@@ -13,6 +13,36 @@ import Joi from "joi";
 // Schema
 import Schemas from '../validations/userValidation.js'
 
+//Encontrar un doctor por medio del id de usuario
+const getADoctor = async(req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const doctor = await prisma.doctor.findFirst({
+            where : {
+                userId: Number(userId)
+            }
+        });
+    
+        if (!doctor) {
+            return responds.error(req, res, { message: 'Doctor no encontrado.' }, 404);
+        }
+    
+        // const dataUser = await prisma.usuario.findFirst({
+        //     where: {
+        //         id: Number(userId)
+        //     }
+        // })
+    
+        // const data = {...doctor };
+    
+        // Devolviendo los datos de todos los doctores
+        return responds.success(req, res, { data: doctor }, 200);
+    } catch (error) {
+        return responds.error(req, res, { message: error.message }, 500);
+    }
+}
+
 const encontrarDoctor = async (doctorId) => {
 
     try {
@@ -242,4 +272,4 @@ const deleteDoctor = async (req, res) => {
     }
 }
 
-export default { getDoctores, getOneDoctor, deleteDoctor, editDoctor}
+export default { getDoctores, getOneDoctor, deleteDoctor, editDoctor, getADoctor}
