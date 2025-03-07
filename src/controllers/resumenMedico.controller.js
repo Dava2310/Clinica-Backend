@@ -58,9 +58,12 @@ const getResumenesByPaciente = async (req, res) => {
     try {
         const { pacienteId } = req.params;
 
-        const paciente = await prisma.paciente.findUnique({
+        const paciente = await prisma.paciente.findFirst({
             where: {
-                id: pacienteId
+                userId: pacienteId
+            }, 
+            include: {      
+                usuario:true
             }
         })
 
@@ -71,6 +74,18 @@ const getResumenesByPaciente = async (req, res) => {
         const resumenes = await prisma.resumenMedico.findMany({
             where: {
                 pacienteId: paciente.id
+            },
+            include: {
+                paciente: {
+                    include: {
+                        usuario:true
+                    }
+                },
+                doctor: {
+                    include: {
+                        usuario:true
+                    }
+                } 
             }
         })
 
