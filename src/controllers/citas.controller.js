@@ -215,17 +215,11 @@ const getOpciones = async (req, res) => {
             doctor = await prisma.doctor.findFirst({
                 where: {
                     id: opciones[0].idDoctor
+                },
+                include:{
+                    usuario: true
                 }
             })
-
-            //Extraemos los datos personales del doctor
-            const data = await prisma.usuario.findFirst({
-                where: {
-                    id: doctor.userId
-                }
-            })
-
-            doctor = {...doctor, ...data};
         }
 
         // Consiguiendo la información del paciente

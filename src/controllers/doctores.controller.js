@@ -75,31 +75,11 @@ const getDoctores = async (req, res) => {
     try {
 
         // Obteniendo todos los doctores desde PRISMA
-        const doctores = await prisma.doctor.findMany();
-
-        // Rellenando los datos de usuario
-        let usuario;
-
-        for (const doctor of doctores) {
-
-            // Buscando su usuario correspondiente
-            usuario = await prisma.usuario.findUnique({
-                where: {
-                    id: doctor.userId
-                }
-            })
-
-            if (!usuario) {
-                return responds.error(req, res, {message: 'Hubo un problema con la busqueda de datos.'}, 401);
+        const doctores = await prisma.doctor.findMany({
+            include: {
+                usuario: true
             }
-
-            // Rellenando el resto de los datos que no pertenecen a la entidad doctor
-            doctor.nombre = usuario.nombre
-            doctor.apellido = usuario.apellido
-            doctor.cedula = usuario.cedula
-            doctor.email = usuario.email
-
-        }
+        });
 
         // Devolviendo los datos de todos los doctores
         return responds.success(req, res, { data: doctores }, 200);

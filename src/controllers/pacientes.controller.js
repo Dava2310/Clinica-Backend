@@ -45,31 +45,11 @@ const getPacientes = async (req, res) => {
     try {
 
         // Obteniendo todos los pacientes desde PRISMA
-        const pacientes = await prisma.paciente.findMany();
-
-        // Rellenando los datos de usuario
-        let usuario;
-
-        for (const paciente of pacientes) {
-
-            // Buscando su usuario correspondiente
-            usuario = await prisma.usuario.findUnique({
-                where: {
-                    id: paciente.userId
-                }
-            })
-
-            if (!usuario) {
-                return responds.error(req, res, {message: 'Hubo un problema con la busqueda de datos.'}, 401);
+        const pacientes = await prisma.paciente.findMany({
+            include: {
+                usuario: true
             }
-
-            // Rellenando el resto de los datos que no pertenecen a la entidad paciente
-            paciente.nombre = usuario.nombre
-            paciente.apellido = usuario.apellido
-            paciente.cedula = usuario.cedula
-            paciente.email = usuario.email
-
-        }
+        });
 
         // Devolviendo los datos de todos los pacientes
         return responds.success(req, res, { data: pacientes }, 200);
