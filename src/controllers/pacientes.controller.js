@@ -48,6 +48,9 @@ const getPacientes = async (req, res) => {
         const pacientes = await prisma.paciente.findMany({
             include: {
                 usuario: true
+            },
+            where: {
+                activo: true
             }
         });
 
@@ -203,24 +206,19 @@ const deletePaciente = async (req, res) => {
             return responds.error(req, res, { message: 'Paciente no encontrado.' }, 404);
         }
 
-        // Para hacer una eliminacion de paciente, hay que primero eliminar la entidad paciente y posteriormente la entidad usuario
-        const usuarioId = paciente.userId; // ID del usuario con que eliminaramos la entidad
+        // La eliminacion de un paciente implica el cambiar el estado de activo de la entidad paciente
 
-        // 1. Eliminando el paciente
-        await prisma.paciente.delete({
+        // 1. Eliminando el paciente de forma logica
+        await prisma.paciente.update({
             where: {
                 id: pacienteId
+            },
+            data: {
+                activo: false
             }
         })
 
-        // 2. Eliminando el usuario
-        await prisma.usuario.delete({
-            where: {
-                id: usuarioId
-            }
-        })
-
-        // 3. Enviando la respuesta al usuario
+        // 2. Enviando la respuesta al usuario
         return responds.success(req, res, { message: 'Eliminación realizada con éxito.' }, 200);
 
     } catch (error) {

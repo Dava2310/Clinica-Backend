@@ -30,8 +30,6 @@ app.use(express.json());
 app.set('port', config.app.port);
 
 // Middlewares
-app.use(morgan('dev'));
-
 // Including routes
 app.use(userRoutes);
 app.use(authRoutes);

@@ -55,6 +55,7 @@ model Paciente {
   direccion      String
   numeroTelefono String
   seguroMedico   String
+  activo         Boolean @default(true)
 
   historialMedico  HistorialMedico[]
   resumenesMedicos ResumenMedico[]
@@ -134,10 +135,10 @@ model Cita {
   doctor   Doctor? @relation(fields: [idDoctor], references: [id])
 
   // Datos de la cita
-  tipoServicio  String
-  especialidad  String
-  fecha         DateTime?
-  estado        String    @default("Solicitada") // Solicitada, Opciones, Programada, Cancelada, Finalizada
+  tipoServicio String
+  especialidad String
+  fecha        DateTime?
+  estado       String    @default("Solicitada") // Solicitada, Opciones, Programada, Cancelada, Finalizada
 
   // Relacion con el resumen medico
   resumenMedico ResumenMedico[]

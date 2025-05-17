@@ -180,13 +180,16 @@ const loginUser = async (req, res) => {
             return responds.error(req, res, { message: 'El correo o la contraseña es inválida.' }, 401);
         }
 
-        // Verify type of user
-        // const tipoUsuario = result.tipoUsuario;
+        // Verificar que no sea un paciente inactivo
+        const posiblePaciente = await prisma.paciente.findFirst({
+            where: {
+                userId: user.id
+            }
+        })
 
-        // if (tipoUsuario != user.tipoUsuario) {
-        //     return responds.error(req, res, {message: 'El tipo de usuario no coincide.'}, 404);
-        // }
-        
+        if (posiblePaciente && !posiblePaciente.activo) {
+            return responds.error(req, res, { message: 'El correo o la contraseña es inválida.' }, 401);
+        }
 
         // Generate access and refresh tokens
         const accessToken = jwt.sign(
